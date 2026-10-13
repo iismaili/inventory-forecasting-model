@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DemandFlow AI | TensorFlow Perakende & Depo Talep Tahmini</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-icon">📦</div>
+        <div>
+          <h1 class="brand-title">DemandFlow AI</h1>
+          <div class="brand-subtitle">TensorFlow Zaman Serisi & Depo Stok Optimizasyon Platformu</div>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div class="badge badge-ai">
+          <span class="pulse-dot"></span>
+          TensorFlow Bi-LSTM + Multi-Head Attention
+        </div>
+        <div class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+          ⚡ Model Doğruluğu: <span id="headerAccuracy">86.2%</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="tab-overview">📊 Yönetici Özeti</button>
+    <button class="nav-tab" data-tab="tab-forecast">📈 Zaman Serisi & Salı Tahmini</button>
+    <button class="nav-tab" data-tab="tab-inventory">🛡️ Stok & Zayiat Önleme</button>
+    <button class="nav-tab" data-tab="tab-simulator">🧪 Ne-Olursa Senaryo Simülatörü</button>
+    <button class="nav-tab" data-tab="tab-model">🧠 TensorFlow AI Modeli</button>
+    <button class="nav-tab" data-tab="tab-erp">🔌 ERP / WMS Eklenti Entegrasyonu</button>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="main-container">
+
+    <!-- 1. YÖNETİCİ ÖZETİ (OVERVIEW) -->
+    <section id="tab-overview" class="tab-pane active">
+      
+      <!-- Tuesday Spotlight Banner -->
+      <div class="tuesday-hero-banner">
+        <div class="tuesday-content">
+          <h3>
+            🎯 Gelecek Hafta Salı Günü Hedef Talep Analizi
+            <span class="tuesday-badge">KRİTİK GÜN TAHMİNİ</span>
+          </h3>
+          <p style="color: var(--text-secondary); max-width: 780px;">
+            TensorFlow zaman serisi modeli, geçmiş satış desenleri, hava durumu, enflasyon ve dönemsel faktörleri analiz ederek 
+            <strong>Gelecek Salı günü</strong> için depo ve mutfak hazırlık tahminlerini üretti.
+          </p>
+        </div>
+        <div class="tuesday-stat">
+          <div class="tuesday-number" id="spotlightTueTotal">--</div>
+          <div class="tuesday-label">Seçili Ürün Gelecek Salı Satış Adedi</div>
+        </div>
+      </div>
+
+      <!-- Executive KPI Cards -->
+      <div class="kpi-grid">
+        <div class="card kpi-card" style="--accent-color: #6366f1;">
+          <div class="kpi-header">
+            <span class="kpi-title">Toplam 7 Günlük Talep</span>
+            <span class="kpi-icon">📈</span>
+          </div>
+          <div class="kpi-value" id="kpiTotalDemand">--</div>
+          <div class="kpi-desc">TensorFlow tarafından tahmin edilen toplam adet</div>
+        </div>
+
+        <div class="card kpi-card" style="--accent-color: #f43f5e;">
+          <div class="kpi-header">
+            <span class="kpi-title">Kaçırılma Riski Olan Ciro</span>
+            <span class="kpi-icon">⚠️</span>
+          </div>
+          <div class="kpi-value" style="color: #fb7185;" id="kpiLostRevenue">-- ₺</div>
+          <div class="kpi-desc">Stok tükenmesi nedeniyle kaybedilebilecek ciro</div>
+        </div>
+
+        <div class="card kpi-card" style="--accent-color: #f59e0b;">
+          <div class="kpi-header">
+            <span class="kpi-title">Bozulma / Zayiat Riski</span>
+            <span class="kpi-icon">🗑️</span>
+          </div>
+          <div class="kpi-value" style="color: #fbbf24;" id="kpiWasteLoss">-- ₺</div>
+          <div class="kpi-desc">Raf ömrü dolup çöpe gitme riski taşıyan maliyet</div>
+        </div>
+
+        <div class="card kpi-card" style="--accent-color: #10b981;">
+          <div class="kpi-header">
+            <span class="kpi-title">Toplam Envanter Değeri</span>
+            <span class="kpi-icon">💼</span>
+          </div>
+          <div class="kpi-value" style="color: #34d399;" id="kpiInventoryVal">-- ₺</div>
+          <div class="kpi-desc">Depolardaki toplam anlık stok kıymeti</div>
+        </div>
+      </div>
+
+      <!-- Action Items & High Risk Overview Table -->
+      <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+          <span>🚨 Kritik Stok & Karar Destek Radarı</span>
+          <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-secondary);">Canlı ERP/WMS Durumu</span>
+        </h3>
+        <div class="table-responsive">
+          <table class="data-table" id="overviewTable">
+            <thead>
+              <tr>
+                <th>Ürün</th>
+                <th>Kategori</th>
+                <th>Mevcut Stok</th>
+                <th>Gelecek Salı Tahmini</th>
+                <th>7 Günlük Toplam</th>
+                <th>Sipariş Eşiği (ROP)</th>
+                <th>Durum & Risk</th>
+                <th>Önerilen Aksiyon</th>
+              </tr>
+            </thead>
+            <tbody id="overviewTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 2. ZAMAN SERİSİ & SALI TAHMİNİ (FORECAST STUDIO) -->
+    <section id="tab-forecast" class="tab-pane">
+      
+      <!-- Product Selector -->
+      <div class="product-selector-bar">
+        <span class="selector-label">Ürün Seçiniz:</span>
+        <select class="select-input" id="forecastProductSelect" onchange="onProductChange()">
+          <!-- Populated by JS -->
+        </select>
+        <button class="btn-secondary" onclick="loadForecastData()">🔄 Tahmini Yenile</button>
+      </div>
+
+      <!-- Tuesday Detailed Focus Card -->
+      <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--primary); background: linear-gradient(90deg, rgba(99, 102, 241, 0.12), transparent);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <div style="font-size: 0.85rem; color: var(--primary-light); font-weight: 700;">HEDEF SORU: "Gelecek hafta salı günü hangi üründen kaç adet satılacak?"</div>
+            <h2 style="font-size: 1.5rem; margin-top: 4px;" id="tueTargetTitle">Taze Süt İçin Salı Tahmini: 118 Adet</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;" id="tueTargetDetail">TensorFlow %95 Güven Aralığı: [104 - 133 adet] aralığında beklenmektedir.</p>
+          </div>
+          <div style="text-align: right;">
+            <span class="badge badge-ai" style="font-size: 0.9rem; padding: 8px 16px;">
+              Tarih: <span id="tueTargetDate">2026-10-13</span> (Salı)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Forecast Chart -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 1.15rem;">📈 Geçmiş Satışlar vs TensorFlow 7 Günlük Tahmin Eğrisi</h3>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Son 30 günün gerçekleşen satışları ile gelecek 7 günün model öngörüsü</div>
+          </div>
+          <div style="display: flex; gap: 16px; font-size: 0.8rem;">
+            <span style="color: #10b981;">● Gerçekleşen Satışlar</span>
+            <span style="color: #6366f1;">● TensorFlow Tahmini</span>
+            <span style="color: #38bdf8;">░ Güven Aralığı</span>
+          </div>
+        </div>
+        <div style="height: 380px;">
+          <canvas id="forecastChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 7 Days Grid Breakdown -->
+      <div class="card">
+        <h3 style="margin-bottom: 8px; font-size: 1.1rem;">🗓️ Gelecek 7 Günün Günlük Detay Tablosu</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+          Modelin her gün için öngördüğü satış adedi ve güven aralıkları
+        </p>
+        <div class="days-grid" id="daysGridContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 3. STOK & ZAYİAT OPTİMİZASYONU (INVENTORY ENGINE) -->
+    <section id="tab-inventory" class="tab-pane">
+      
+      <div class="grid-2col">
+        <!-- Stockout Risk Analysis -->
+        <div class="card">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <div style="font-size: 1.6rem;">🚨</div>
+            <div>
+              <h3 style="font-size: 1.15rem;">Stok Tükenmesi (Stockout) Risk Analizi</h3>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">Mevcut stok talebi karşılamaya yetiyor mu?</div>
+            </div>
+          </div>
+          
+          <div id="stockoutCardContent">
+            <!-- Dynamic content -->
+          </div>
+        </div>
+
+        <!-- Spoilage & Waste Risk -->
+        <div class="card">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <div style="font-size: 1.6rem;">🥬</div>
+            <div>
+              <h3 style="font-size: 1.15rem;">Bozulma & İsraf (Spoilage) Risk Analizi</h3>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">Bozulabilir ürünler için raf ömrü koruması</div>
+            </div>
+          </div>
+          
+          <div id="spoilageCardContent">
+            <!-- Dynamic content -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Reorder Point (ROP) & Safety Stock Equations -->
+      <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 1.15rem;">📦 Matematiksel Sipariş & Emniyet Stoğu Formülleri</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+          <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: var(--radius-sm); border-left: 3px solid #6366f1;">
+            <div style="font-weight: 700; color: #818cf8; margin-bottom: 4px;">Emniyet Stoğu (Safety Stock)</div>
+            <div style="font-family: monospace; font-size: 0.95rem; margin-bottom: 8px;">SS = Z × σ_d × √L</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Z=1.65 (%95 Hizmet Seviyesi), σ_d = talep standart sapması, L = tedarik süresi (gün).</div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: var(--radius-sm); border-left: 3px solid #10b981;">
+            <div style="font-weight: 700; color: #34d399; margin-bottom: 4px;">Sipariş Noktası (Reorder Point - ROP)</div>
+            <div style="font-family: monospace; font-size: 0.95rem; margin-bottom: 8px;">ROP = (d_avg × L) + SS</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Stok bu seviyenin altına düştüğü anda ERP üzerinden otomatik sipariş tetiklenir.</div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: var(--radius-sm); border-left: 3px solid #f59e0b;">
+            <div style="font-weight: 700; color: #fbbf24; margin-bottom: 4px;">Zayiat Önleme İndirim Algoritması</div>
+            <div style="font-family: monospace; font-size: 0.95rem; margin-bottom: 8px;">İndirim = Min(30%, (Fazla Stok / Talep) × 15%)</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Çöpe atılacak ürünleri %100 zarara uğramadan önce nakde çevirir.</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 4. SENARYO SİMÜLATÖRÜ (WHAT-IF) -->
+    <section id="tab-simulator" class="tab-pane">
+      
+      <div class="card" style="margin-bottom: 24px;">
+        <h3 style="font-size: 1.2rem; margin-bottom: 8px;">🧪 "Ne Olursa?" Senaryo Simülatörü</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">
+          Hava koşullarını, sıcaklığı, promosyonel indirimleri ve tatil günlerini değiştirerek 
+          TensorFlow modelinin talep üzerindeki anlık elastikiyetini test edin.
+        </p>
+
+        <div class="sim-form">
+          <div class="form-group">
+            <label class="form-label">Ürün Seçimi</label>
+            <select class="select-input" id="simProductSelect">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span>Hava Durumu</span>
+            </label>
+            <select class="select-input" id="simWeather">
+              <option value="0">☀️ Güneşli / Açık</option>
+              <option value="1">⛅ Parçalı Bulutlu</option>
+              <option value="2">☁️ Bulutlu</option>
+              <option value="3" selected>🌧️ Yağmurlu</option>
+              <option value="4">❄️ Karlı</option>
+              <option value="5">⛈️ Fırtınalı</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span>Sıcaklık (°C)</span>
+              <span class="form-value-badge" id="simTempDisplay">14 °C</span>
+            </label>
+            <input type="range" class="range-slider" id="simTemp" min="-5" max="38" value="14" oninput="document.getElementById('simTempDisplay').innerText = this.value + ' °C'">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span>Flaş İndirim (%)</span>
+              <span class="form-value-badge" id="simDiscountDisplay">%20</span>
+            </label>
+            <input type="range" class="range-slider" id="simDiscount" min="0" max="40" step="5" value="20" oninput="document.getElementById('simDiscountDisplay').innerText = '%' + this.value">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Resmi / Dini Tatil mi?</label>
+            <select class="select-input" id="simHoliday">
+              <option value="0">Hayır (Normal Gün)</option>
+              <option value="1">Evet (Tatil / Bayram)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="runWhatIfSimulation()">
+          🚀 Senaryo Tahminini Çalıştır
+        </button>
+      </div>
+
+      <!-- Simulation Comparison Results -->
+      <div id="simResultsContainer" style="display: none;">
+        <div class="card" style="margin-bottom: 24px; border: 1px solid var(--cyan);">
+          <h3 style="font-size: 1.15rem; color: var(--cyan); margin-bottom: 12px;" id="simSummaryHeader">
+            📊 Senaryo Simülasyon Sonuçları
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">Temel Gelecek Salı</div>
+              <div style="font-size: 1.8rem; font-weight: 800;" id="simBaseTue">-- adet</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.8rem; color: var(--cyan);">Simüle Edilen Gelecek Salı</div>
+              <div style="font-size: 1.8rem; font-weight: 800; color: var(--cyan);" id="simResultTue">-- adet</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">Salı Günü Değişimi</div>
+              <div style="font-size: 1.8rem; font-weight: 800;" id="simDeltaTue">--%</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">7 Günlük Toplam Değişim</div>
+              <div style="font-size: 1.8rem; font-weight: 800;" id="simDeltaTotal">--%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size: 1.1rem; margin-bottom: 16px;">📊 Temel Tahmin vs Simüle Edilen 7 Günlük Talep</h3>
+          <div style="height: 340px;">
+            <canvas id="simComparisonChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 5. TENSORFLOW AI MODEL DETAYLARI & EĞİTİM (MODEL STUDIO) -->
+    <section id="tab-model" class="tab-pane">
+      
+      <div class="grid-2col">
+        <!-- Model Architecture Card -->
+        <div class="card">
+          <h3 style="font-size: 1.2rem; margin-bottom: 12px;">🧠 Model Mimarisi & Hiperparametreler</h3>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem;">
+            <div><strong>Kütüphane:</strong> <span style="color: var(--primary-light);">TensorFlow 2.22.0 / Keras 3</span></div>
+            <div><strong>Mimari:</strong> <span style="color: var(--cyan);">Bidirectional LSTM (64) + Multi-Head Self Attention (4 heads) + GRU (32) + Dense</span></div>
+            <div><strong>Girdi Penceresi:</strong> 14 Günlük Tarihsel Çok Değişkenli Zaman Serisi (Lookback = 14)</div>
+            <div><strong>Çıktı Ufku:</strong> Gelecek 7 Günlük Çok Adımlı Tahmin (Horizon = 7)</div>
+            <div><strong>Kayıp Fonksiyonu:</strong> Huber Loss (Aykırı satış patlamalarına dayanıklı)</div>
+            <div><strong>Optimizatör:</strong> Adam (Öğrenme oranı: 0.001)</div>
+            <div><strong>Girdi Özellikleri:</strong> Satışlar, Sıcaklık, Hava Durumu, Tatil Günleri, Hafta Sonu, Sin/Cos Döngüsel Gün & Ay, İndirim %, Enflasyon Endeksi, Ürün One-Hot Vektörleri.</div>
+          </div>
+
+          <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-card);">
+            <h4 style="font-size: 0.95rem; margin-bottom: 10px;">Modeli Yeniden Eğit:</h4>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <input type="number" id="retrainEpochs" class="select-input" value="25" min="5" max="100" style="width: 100px;">
+              <button class="btn-primary" onclick="triggerRetrain()" id="btnRetrain">
+                ⚡ Yeniden Eğit
+              </button>
+            </div>
+            <div id="retrainStatusText" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px;"></div>
+          </div>
+        </div>
+
+        <!-- Evaluation Metrics Card -->
+        <div class="card">
+          <h3 style="font-size: 1.2rem; margin-bottom: 16px;">🎯 Değerlendirme Metrikleri (Test Seti)</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">MAE (Ort. Mutlak Hata)</div>
+              <div style="font-size: 1.6rem; font-weight: 800; color: #818cf8;" id="metricMae">--</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Birim satış cinsinden</div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">RMSE (Hata Karekökü)</div>
+              <div style="font-size: 1.6rem; font-weight: 800; color: #38bdf8;" id="metricRmse">--</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Büyük sapma cezası</div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">MAPE (Yüzdesel Hata)</div>
+              <div style="font-size: 1.6rem; font-weight: 800; color: #f59e0b;" id="metricMape">--</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Ortalama yüzde sapma</div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Model Doğruluğu</div>
+              <div style="font-size: 1.6rem; font-weight: 800; color: #10b981;" id="metricAccuracy">--</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">100 - MAPE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Loss Curve Chart -->
+      <div class="card" style="margin-top: 24px;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 16px;">📉 Eğitim Kayıp Eğrisi (Training & Validation Loss)</h3>
+        <div style="height: 320px;">
+          <canvas id="lossChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 6. ERP / WMS EKLENTİ ENTEGRASYONU (MONETIZATION & API) -->
+    <section id="tab-erp" class="tab-pane">
+      
+      <div class="card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h2 style="font-size: 1.35rem; margin-bottom: 6px;">💼 Para Kazanma Modeli: ERP & WMS Eklentisi Olarak Satış</h2>
+            <p style="color: var(--text-secondary); max-width: 800px; font-size: 0.9rem;">
+              Bu yapay zeka motoru, <strong>SAP, Logo Tiger, Netsis, Nebim V3, Mikro, Shopify veya Magento</strong> gibi kurumsal ERP ve depo yönetim yazılımlarına 
+              aylık abonelik (SaaS) modeliyle bir REST API eklentisi olarak bağlanır. 
+              Müşteriler stoksuz kalmayı önleyerek satış kaçırmaz ve bozulabilir ürün zayiatını sıfıra indirerek aylık on binlerce lira tasarruf eder.
+            </p>
+          </div>
+          <div>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.9rem; padding: 10px 16px;">
+              💎 Aylık Abonelik Fiyatı: 4,990 ₺ / Depo
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Live JSON API Output -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1.1rem;">📡 Canlı ERP Çıktı Akışı (/api/erp/export)</h3>
+            <button class="btn-secondary" onclick="fetchErpJson()">Yenile</button>
+          </div>
+          <pre class="code-box" id="erpJsonBox" style="height: 320px;">Yükleniyor...</pre>
+        </div>
+
+        <!-- Integration Instructions -->
+        <div class="card">
+          <h3 style="font-size: 1.1rem; margin-bottom: 12px;">🛠️ Entegrasyon Kılavuzu & Webhook</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">
+            ERP yazılımınız her gece saat 00:00'da son 14 günlük satışları POST eder veya bu uç noktayı çağırarak otomatik Satın Alma Siparişi (Purchase Order) oluşturur.
+          </p>
+
+          <div class="code-box" style="font-size: 0.8rem; margin-bottom: 14px;">
+curl -X GET "http://localhost:8000/api/erp/export" \
+     -H "Authorization: Bearer WMS_API_KEY_SECURE_99" \
+     -H "Content-Type: application/json"
+          </div>
+
+          <div style="font-size: 0.85rem;">
+            <strong>Otomatik Tetiklenen Aksiyonlar:</strong>
+            <ul style="margin-left: 20px; margin-top: 6px; color: var(--text-secondary);">
+              <li>Mevcut Stok &lt; ROP ise tedarikçiye e-posta ile otomatik sipariş gönder.</li>
+              <li>Raf ömrü dolacak ürünler için e-ticaret sitesinde otomatik %20 indirim kuponu oluştur.</li>
+              <li>Her Pazartesi sabahı genel müdüre 7 günlük talep bülteni raporla.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    DemandFlow AI • TensorFlow Zaman Serisi Tabanlı Stok & Talep Tahmin Motoru • Tüm Hakları Saklıdır
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
